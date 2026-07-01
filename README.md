@@ -6,6 +6,35 @@ Turn2C (imagem em ECR, Helm in-tree, deploy no EKS). É **infra de plataforma co
 
 > Provisionado pela squad de DevOps/SRE junto com backend e frontend.
 
+---
+
+## 🚀 Deploy (DevOps) — variáveis de ambiente
+
+> **Leitura obrigatória antes do primeiro deploy.** Ambientes: **`develop` → dev**, **`main` → prd**
+> (não há `apc` neste projeto). O cluster Spark **não tem banco de dados nem migrações** — é runtime + libs.
+> Os **jobs e o código** viajam com o `t2c-data-backend` via `spark-submit` (`--py-files`).
+
+### No cluster (ConfigMap/Secret via Helm)
+| Var | Local | Nota |
+|---|---|---|
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Secret | Acesso S3 (S3A: results/event logs em `s3a://…`). IRSA é direção futura. |
+| `AWS_REGION` | Config | ex.: `us-east-1`. |
+| `SPARK_NO_DAEMONIZE=true` | Config | mantém master/worker em foreground (probes/logs). |
+
+Ajustes de recursos por `values` (`worker.replicas/cores/memory`, `master/worker.resources`, `scratch.sizeLimit`).
+`conf/spark-defaults.conf` já configura o S3A a partir das credenciais de ambiente.
+
+### Como o `t2c-data-backend` se conecta (definido no repo do backend, não aqui)
+```
+SPARK_MASTER_URL=spark://t2c-data-spark-master.<namespace>.svc.cluster.local:7077
+SPARK_DRIVER_HOST=<host do driver alcançável pelos executores>
+SPARK_DRIVER_BIND_ADDRESS=0.0.0.0
+SPARK_RESULTS_DIR=s3a://<bucket>/<prefixo>   # em prd (pods diferentes não compartilham disco local)
+```
+Namespace padrão: `{env}-app` (ex.: `dev-app`, `prd-app`). Endpoint/UI **não** devem ser expostos publicamente.
+
+---
+
 ## O que a imagem inclui
 - Spark 3.5.1 (base `apache/spark:3.5.1`, non-root uid 185).
 - **Libs (JDBC + S3)** no classpath: `postgresql`, `mysql-connector-j`, `hadoop-aws`, `aws-java-sdk-bundle`.
