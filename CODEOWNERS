@@ -1,0 +1,9 @@
+# Repositório de infra (cluster Spark) — mantido pela squad de DevOps/SRE.
+.github/workflows/cicd.yaml    @turn2c/squad-sre-devops
+.github/workflows/*.yaml       @turn2c/squad-sre-devops
+.helm/                         @turn2c/squad-sre-devops
+.helm/**                       @turn2c/squad-sre-devops
+infra.yaml                     @turn2c/squad-sre-devops
+Dockerfile                     @turn2c/squad-sre-devops
+.dockerignore                  @turn2c/squad-sre-devops
+conf/                          @turn2c/squad-sre-devops

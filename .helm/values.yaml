@@ -1,0 +1,46 @@
+# Defaults estáticos. Per-env via CI: --set image.tag={env}-{sha}, --set config.X, -f secret-values.yaml.
+appName: t2c-data-spark
+
+image:
+  repository: ""          # ECR (via --set image.repository)
+  tag: ""                 # {env}-{git-sha} (via --set image.tag)
+  pullPolicy: IfNotPresent
+
+master:
+  webUiPort: 8080
+  rpcPort: 7077
+  resources:
+    requests: { cpu: 500m, memory: 1Gi }
+    limits: { cpu: "1", memory: 2Gi }
+
+worker:
+  replicas: 2
+  cores: 2
+  memory: 2G            # memória que o worker oferta ao Spark (SPARK_WORKER_MEMORY)
+  webUiPort: 8081
+  resources:
+    requests: { cpu: "1", memory: 2Gi }
+    limits: { cpu: "2", memory: 4Gi }
+  hpa:
+    enabled: false       # workers standalone: escalar com cuidado (registram no master)
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 75
+
+# Scratch efêmero por pod (spark.local.dir). sizeLimit opcional.
+scratch:
+  sizeLimit: 10Gi
+
+podDisruptionBudget:
+  minAvailable: 1
+
+# ConfigMap: overrides de spark-defaults e envs não-secretas.
+config:
+  SPARK_WORKER_CORES: "2"
+  SPARK_WORKER_MEMORY: "2G"
+
+# Secret: credenciais AWS p/ S3 (via secret-values.yaml em runtime — NUNCA versionar valores).
+secrets:
+  AWS_ACCESS_KEY_ID: ""
+  AWS_SECRET_ACCESS_KEY: ""
+  AWS_REGION: ""

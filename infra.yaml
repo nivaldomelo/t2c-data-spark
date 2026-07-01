@@ -1,0 +1,7 @@
+application:
+  name: t2c-data-spark
+  language:
+    name: spark
+    version: "3.5.1"
+# Serviço de plataforma (cluster Spark standalone) — Helm in-tree, imagem em ECR.
+# cicd.yaml é in-repo. Consumido pelo t2c-data-backend via SPARK_MASTER_URL.

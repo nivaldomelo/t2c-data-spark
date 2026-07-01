@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}-master
+  labels:
+{{ include "spark.labels" . | indent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: {{ .Values.appName }}
+    app.kubernetes.io/component: master
+  ports:
+    - { name: rpc, port: {{ .Values.master.rpcPort }}, targetPort: rpc }
+    - { name: webui, port: {{ .Values.master.webUiPort }}, targetPort: webui }
+# t2c-data-backend usa: SPARK_MASTER_URL=spark://{{ .Values.appName }}-master.<namespace>.svc.cluster.local:{{ .Values.master.rpcPort }}
