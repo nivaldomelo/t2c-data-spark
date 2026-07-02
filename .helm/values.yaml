@@ -13,31 +13,34 @@ master:
     requests: { cpu: 500m, memory: 1Gi }
     limits: { cpu: "1", memory: 2Gi }
 
+# Escala MÉDIA de produção (10–100M linhas, ~3–5 jobs DQ/profiling simultâneos).
+# Total: 3 workers × 4 cores / 8G = 12 cores / 24G ofertados ao Spark.
+# Com spark.cores.max=4 por job (no backend), ~3 jobs coexistem.
 worker:
-  replicas: 2
-  cores: 2
-  memory: 2G            # memória que o worker oferta ao Spark (SPARK_WORKER_MEMORY)
+  replicas: 3
+  cores: 4
+  memory: 8G            # memória que o worker oferta ao Spark (SPARK_WORKER_MEMORY)
   webUiPort: 8081
   resources:
-    requests: { cpu: "1", memory: 2Gi }
-    limits: { cpu: "2", memory: 4Gi }
+    requests: { cpu: "2", memory: 6Gi }
+    limits: { cpu: "4", memory: 10Gi }   # folga p/ overhead da JVM + /tmp acima do SPARK_WORKER_MEMORY
   hpa:
     enabled: false       # workers standalone: escalar com cuidado (registram no master)
-    minReplicas: 2
-    maxReplicas: 5
+    minReplicas: 3
+    maxReplicas: 6
     targetCPUUtilizationPercentage: 75
 
-# Scratch efêmero por pod (spark.local.dir). sizeLimit opcional.
+# Scratch efêmero por pod (spark.local.dir). Profiling pode fazer spill — folga na escala média.
 scratch:
-  sizeLimit: 10Gi
+  sizeLimit: 20Gi
 
 podDisruptionBudget:
   minAvailable: 1
 
 # ConfigMap: overrides de spark-defaults e envs não-secretas.
 config:
-  SPARK_WORKER_CORES: "2"
-  SPARK_WORKER_MEMORY: "2G"
+  SPARK_WORKER_CORES: "4"
+  SPARK_WORKER_MEMORY: "8G"
 
 # Isolamento de rede: só o backend (driver) e os próprios pods Spark alcançam master/worker.
 networkPolicy:
