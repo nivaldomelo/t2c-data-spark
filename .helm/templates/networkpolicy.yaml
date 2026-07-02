@@ -1,3 +1,6 @@
+{{- if and .Values.spark.authEnabled (not .Values.secrets.SPARK_AUTH_SECRET) }}
+{{ fail "spark.authEnabled=true exige secrets.SPARK_AUTH_SECRET (mesmo valor no Secret do t2c-data-backend). Defina-o no secret-values.yaml antes de habilitar." }}
+{{- end }}
 {{- if .Values.networkPolicy.enabled }}
 # Isolamento de rede: o master/worker Spark standalone NÃO tem autenticação por padrão,
 # então restringimos o ingress a APENAS os pods do backend (driver) e aos próprios pods
@@ -11,7 +14,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/part-of: {{ .Values.appName }}
+      app.kubernetes.io/name: {{ .Values.appName }}
   policyTypes:
     - Ingress
   ingress:
@@ -19,7 +22,7 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/part-of: {{ .Values.appName }}
+              app.kubernetes.io/name: {{ .Values.appName }}
     # Backend (driver do spark-submit) — todas as portas (executor usa portas dinâmicas).
     - from:
         - podSelector:

@@ -112,6 +112,7 @@ jobs:
             AWS_ACCESS_KEY_ID: "${{ env.AWS_ACCESS_KEY_ID }}"
             AWS_SECRET_ACCESS_KEY: "${{ env.AWS_SECRET_ACCESS_KEY }}"
             AWS_REGION: "${{ vars.AWS_REGION }}"
+            SPARK_AUTH_SECRET: "${{ secrets.SPARK_AUTH_SECRET }}"
           EOF
       - name: helm upgrade --install
         env:
