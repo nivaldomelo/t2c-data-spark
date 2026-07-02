@@ -42,6 +42,15 @@ spec:
                   fieldPath: status.podIP
             - name: SPARK_LOG_DIR
               value: /tmp/spark-logs
+{{- if .Values.spark.authEnabled }}
+            - name: SPARK_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.appName }}-secrets
+                  key: SPARK_AUTH_SECRET
+            - name: SPARK_DAEMON_JAVA_OPTS
+              value: "-Dspark.authenticate=true -Dspark.authenticate.secret=$(SPARK_AUTH_SECRET)"
+{{- end }}
           envFrom:
             - configMapRef:
                 name: {{ .Values.appName }}-config

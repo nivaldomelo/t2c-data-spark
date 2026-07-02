@@ -7,6 +7,9 @@ on:
     branches: [main, develop, apice]   # main→prd, develop→dev, apice→apc
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   BRANCH: ${{ github.ref_name }}
 
@@ -104,11 +107,12 @@ jobs:
         run: aws eks update-kubeconfig --name "${{ needs.init.outputs.cluster_name }}" --region "${{ vars.AWS_REGION }}"
       - name: Generate secret-values.yaml (runtime only)
         run: |
-          cat > secret-values.yaml <<EOF
+          umask 077; cat > ../secret-values.yaml <<EOF
           secrets:
             AWS_ACCESS_KEY_ID: "${{ env.AWS_ACCESS_KEY_ID }}"
             AWS_SECRET_ACCESS_KEY: "${{ env.AWS_SECRET_ACCESS_KEY }}"
             AWS_REGION: "${{ vars.AWS_REGION }}"
+            SPARK_AUTH_SECRET: "${{ secrets.SPARK_AUTH_SECRET }}"
           EOF
       - name: helm upgrade --install
         env:
@@ -119,7 +123,7 @@ jobs:
           REGISTRY="$AWS_ACCOUNT_ID.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com"
           helm upgrade --install "$APP_NAME" .helm \
             -n "${ENVIRONMENT}-app" --create-namespace \
-            -f secret-values.yaml \
+            -f ../secret-values.yaml \
             --set appName="$APP_NAME" \
             --set image.repository="$REGISTRY/$APP_NAME" \
             --set image.tag="${ENVIRONMENT}-${GITHUB_SHA::7}" \
