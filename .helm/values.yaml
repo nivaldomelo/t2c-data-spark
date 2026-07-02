@@ -39,8 +39,20 @@ config:
   SPARK_WORKER_CORES: "2"
   SPARK_WORKER_MEMORY: "2G"
 
+# Isolamento de rede: só o backend (driver) e os próprios pods Spark alcançam master/worker.
+networkPolicy:
+  enabled: true
+  backendPodLabels:
+    app.kubernetes.io/name: t2c-data-backend
+
+# Autenticação RPC do Spark (defesa em profundidade). Ligue APÓS pôr SPARK_AUTH_SECRET no
+# secret-values.yaml (mesmo valor deve ir no Secret do t2c-data-backend, env SPARK_AUTH_SECRET).
+spark:
+  authEnabled: false
+
 # Secret: credenciais AWS p/ S3 (via secret-values.yaml em runtime — NUNCA versionar valores).
 secrets:
   AWS_ACCESS_KEY_ID: ""
   AWS_SECRET_ACCESS_KEY: ""
   AWS_REGION: ""
+  SPARK_AUTH_SECRET: ""

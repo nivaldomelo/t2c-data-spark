@@ -47,6 +47,15 @@ spec:
               value: /tmp/spark-logs
             - name: SPARK_WORKER_DIR
               value: /tmp/spark-work
+{{- if .Values.spark.authEnabled }}
+            - name: SPARK_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.appName }}-secrets
+                  key: SPARK_AUTH_SECRET
+            - name: SPARK_DAEMON_JAVA_OPTS
+              value: "-Dspark.authenticate=true -Dspark.authenticate.secret=$(SPARK_AUTH_SECRET)"
+{{- end }}
           envFrom:
             - configMapRef:
                 name: {{ .Values.appName }}-config

@@ -1,0 +1,28 @@
+{{- if .Values.networkPolicy.enabled }}
+# Isolamento de rede: o master/worker Spark standalone NÃO tem autenticação por padrão,
+# então restringimos o ingress a APENAS os pods do backend (driver) e aos próprios pods
+# Spark (RPC master<->worker). Sem porta fixa: driver<->executor usa portas dinâmicas.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.appName }}-restrict-ingress
+  labels:
+{{ include "spark.labels" . | indent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: {{ .Values.appName }}
+  policyTypes:
+    - Ingress
+  ingress:
+    # Comunicação interna do cluster Spark (master <-> workers).
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: {{ .Values.appName }}
+    # Backend (driver do spark-submit) — todas as portas (executor usa portas dinâmicas).
+    - from:
+        - podSelector:
+            matchLabels:
+{{ toYaml .Values.networkPolicy.backendPodLabels | indent 14 }}
+{{- end }}
