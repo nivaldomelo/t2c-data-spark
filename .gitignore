@@ -2,4 +2,3 @@
 *.log
 .env
 .env.local
-# secret-values.yaml NÃO é ignorado (só existe em runtime no deploy — padrão Turn2C).
