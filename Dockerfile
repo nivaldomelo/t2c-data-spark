@@ -11,6 +11,10 @@ ARG HADOOP_AWS=3.3.4
 ARG AWS_SDK_BUNDLE=1.12.262
 
 # Libs adicionadas ao classpath do Spark (executores + driver em cluster-mode).
+# HARDENING (supply-chain, recomendado pelo DevOps): fixar e verificar o SHA-256 de cada JAR
+# (obtido out-of-band de fonte confiável) após o download, ex.:
+#   echo "<sha256>  postgresql-${POSTGRES_JDBC}.jar" | sha256sum -c -
+# Versões já estão pinadas via ARG; falta a verificação de integridade.
 RUN set -eux; \
     cd /opt/spark/jars; \
     curl -fSL -o "postgresql-${POSTGRES_JDBC}.jar" \
